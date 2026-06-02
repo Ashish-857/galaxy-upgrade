@@ -35,17 +35,29 @@ function App() {
   useEffect(() => {
     const handleInteraction = () => {
       if (audioRef.current && audioRef.current.paused) {
-        audioRef.current.play().catch(e => console.error(e));
+        audioRef.current.play().then(() => {
+          // Play successful, remove listeners
+          document.removeEventListener('click', handleInteraction);
+          document.removeEventListener('touchstart', handleInteraction);
+          document.removeEventListener('touchend', handleInteraction);
+        }).catch(e => console.error(e));
+      } else if (audioRef.current && !audioRef.current.paused) {
+        // Already playing
+        document.removeEventListener('click', handleInteraction);
+        document.removeEventListener('touchstart', handleInteraction);
+        document.removeEventListener('touchend', handleInteraction);
       }
     };
     
-    // Listeners for any kind of interaction
-    document.addEventListener('pointerdown', handleInteraction, { once: true });
-    document.addEventListener('keydown', handleInteraction, { once: true });
+    // Use robust mobile touch events instead of pointerdown
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('touchstart', handleInteraction);
+    document.addEventListener('touchend', handleInteraction);
 
     return () => {
-      document.removeEventListener('pointerdown', handleInteraction);
-      document.removeEventListener('keydown', handleInteraction);
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+      document.removeEventListener('touchend', handleInteraction);
     };
   }, []);
 
