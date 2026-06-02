@@ -1,60 +1,63 @@
-import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { motion } from 'framer-motion';
 import Loading from './Loading';
 import Galaxy from './Galaxy';
 import Rocket from './Rocket';
 import RotatingStars from './RotatingStars';
 import Universe from './Universe';
 
-
-
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [audioStarted, setAudioStarted] = useState(false);
-  const [volume] = useState(1); 
-  const [audio, setAudio] = useState(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
-    }, 5000);
+    }, 3000);
   }, []);
 
-  const startAudio = useCallback(() => {
-    const newAudio = new Audio('/Interstellar-Theme(PagalNew (mp3cut (mp3cut.net).mp3');
-    newAudio.loop = true;
-    newAudio.volume = volume; 
-
-    const playPromise = newAudio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          console.log("Audio started successfully");
-          setAudioStarted(true);
-          setAudio(newAudio);
-        })
-        .catch(error => {
-          console.log("Audio playback failed:", error);
-          setAudioStarted(false);
+  // Attempt to play audio as soon as loading is done
+  useEffect(() => {
+    if (!isLoading && audioRef.current) {
+      audioRef.current.volume = 1;
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Browser blocked autoplay. Waiting for user interaction.");
         });
+      }
     }
+  }, [isLoading]);
+
+  // Fallback: Start audio on the very first click anywhere on the page
+  useEffect(() => {
+    const handleInteraction = () => {
+      if (audioRef.current && audioRef.current.paused) {
+        audioRef.current.play().catch(e => console.error(e));
+      }
+    };
+    
+    // Listeners for any kind of interaction
+    document.addEventListener('pointerdown', handleInteraction, { once: true });
+    document.addEventListener('keydown', handleInteraction, { once: true });
 
     return () => {
-      newAudio.pause();
-      newAudio.currentTime = 0;
+      document.removeEventListener('pointerdown', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
     };
-  }, [volume]);
+  }, []);
 
-  useEffect(() => {
-    if (audio) {
-      audio.volume = volume; 
-    }
-  }, [volume, audio]);
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
+      {/* Hidden Audio Element */}
+      <audio 
+        ref={audioRef} 
+        src="/Interstellar-Theme(PagalNew (mp3cut (mp3cut.net).mp3" 
+        loop 
+      />
+
       {isLoading ? (
         <Loading />
       ) : (
@@ -77,55 +80,11 @@ function App() {
               </EffectComposer>
               <Universe>
                 <Galaxy />
-                {/* <BlackHole /> */}
                 <Rocket />
                 <RotatingStars />
               </Universe>
             </Suspense>
           </Canvas>
-          {!audioStarted && (
-            <motion.button 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.2)' }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.5 }}
-              onClick={startAudio}
-              style={{
-                position: 'absolute',
-                bottom: '60px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                padding: '12px 30px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                color: 'white',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '30px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
-              }}
-            >
-              Start Experience
-            </motion.button>
-          )}
-          {audioStarted && (
-            <div 
-              style={{
-                position: 'absolute',
-                bottom: '20px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '80%',
-                color: 'white'
-              }}
-            >
-            </div>
-          )}
         </>
       )}
     </div>
