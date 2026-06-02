@@ -3,6 +3,20 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { PLANET_DATA } from './PlanetData'
+import { ISS } from './Spacecrafts'
+
+const CloudsMaterial = () => {
+  const texture = useTexture('/textures/earth_clouds.jpg')
+  return (
+    <meshStandardMaterial 
+      map={texture} 
+      transparent={true} 
+      opacity={0.5} 
+      blending={THREE.AdditiveBlending}
+      depthWrite={false}
+    />
+  )
+}
 
 const SunMaterial = () => {
   const texture = useTexture('/textures/sun.jpg')
@@ -41,10 +55,11 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
   const introAnimatingRef = useRef(true)
   const hasSetStartPos = useRef(false)
   const moonRef = useRef()
+  const cloudsRef = useRef()
 
   useFrame((state, delta) => {
-    // Accumulate time gracefully: slow down to 2% speed if paused
-    timeRef.current += isPaused ? delta * 0.02 : delta;
+    // Accumulate time gracefully: slow down to very slow speed if paused, and general speed is now 5x slower
+    timeRef.current += isPaused ? delta * 0.002 : delta * 0.15;
 
     if (prevFocusedRef.current !== focusedPlanetIndex) {
       isAnimatingRef.current = true;
@@ -59,8 +74,8 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         planetRefs.current[index].current.position.x = Math.cos(t) * orbitRadius
         planetRefs.current[index].current.position.z = Math.sin(t) * orbitRadius
         
-        // Realistic planet self-rotation: Gas giants spin very fast, inner planets slower
-        const rotationSpeed = planet.type === 'gas' ? 2.5 : 0.8;
+        // Realistic planet self-rotation: Very slow and majestic
+        const rotationSpeed = planet.type === 'gas' ? (planet.name === 'Jupiter' ? 0.3 : 0.2) : 0.05;
         planetRefs.current[index].current.rotation.y += delta * rotationSpeed * (isPaused ? 0.02 : 1);
       }
     })
@@ -74,6 +89,11 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
       moonRef.current.position.z = planetRefs.current[2].current.position.z + Math.sin(moonT) * moonRadius;
       moonRef.current.position.y = Math.sin(moonT * 0.5) * (moonRadius * 0.3); // slight inclination
       moonRef.current.rotation.y += delta * 0.5;
+    }
+
+    // Update Earth's Clouds
+    if (cloudsRef.current) {
+      cloudsRef.current.rotation.y += delta * 0.9 * (isPaused ? 0.02 : 1);
     }
 
     if (state.controls) {
@@ -200,25 +220,34 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
                 <PlanetMaterial planet={planet} />
               </React.Suspense>
 
-              {/* Atmosphere layer for added realism */}
-              <mesh>
+              {/* Atmosphere/Clouds layer for added realism */}
+              <mesh ref={planet.name === 'Earth' ? cloudsRef : null}>
                 <sphereGeometry args={[radius * 1.05, 64, 64]} />
-                <meshBasicMaterial 
-                  color={planet.color} 
-                  transparent={true} 
-                  opacity={0.15} 
-                  blending={THREE.AdditiveBlending}
-                  depthWrite={false}
-                />
+                {planet.name === 'Earth' ? (
+                  <React.Suspense fallback={null}>
+                    <CloudsMaterial />
+                  </React.Suspense>
+                ) : (
+                  <meshBasicMaterial 
+                    color={planet.color} 
+                    transparent={true} 
+                    opacity={0.15} 
+                    blending={THREE.AdditiveBlending}
+                    depthWrite={false}
+                  />
+                )}
               </mesh>
             </mesh>
 
-            {/* Earth's Moon */}
+            {/* Earth's Moon & ISS */}
             {planet.name === 'Earth' && (
-              <mesh ref={moonRef}>
-                <sphereGeometry args={[radius * 0.25, 32, 32]} />
-                <meshStandardMaterial color="#cccccc" roughness={0.9} metalness={0.1} />
-              </mesh>
+              <>
+                <mesh ref={moonRef}>
+                  <sphereGeometry args={[radius * 0.25, 32, 32]} />
+                  <meshStandardMaterial color="#cccccc" roughness={0.9} metalness={0.1} />
+                </mesh>
+                <ISS isPaused={isPaused} earthRef={planetRefs.current[index]} />
+              </>
             )}
 
             {/* Rings */}

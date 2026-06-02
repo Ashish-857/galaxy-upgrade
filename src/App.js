@@ -8,6 +8,7 @@ import Rocket from './Rocket';
 import RotatingStars from './RotatingStars';
 import Universe from './Universe';
 import AsteroidBelt from './AsteroidBelt';
+import { Voyager } from './Spacecrafts';
 
 import { PLANET_DATA } from './PlanetData';
 
@@ -107,6 +108,7 @@ function App() {
               <Universe isPaused={isPaused}>
                 <Galaxy isPaused={isPaused} />
                 <AsteroidBelt isPaused={isPaused} />
+                <Voyager isPaused={isPaused} />
                 <Rocket focusedPlanetIndex={focusedPlanetIndex} setFocusedPlanetIndex={setFocusedPlanetIndex} isPaused={isPaused} />
                 <RotatingStars isPaused={isPaused} />
               </Universe>
