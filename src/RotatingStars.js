@@ -17,7 +17,7 @@ const RotatingStars = ({ countOverride, fade = false }) => {
     rotationSpeed,
     starSpeed
   } = useMemo(() => ({
-    starCount: countOverride || (isMobile || isLowPerfDevice ? 10000 : 50000),
+    starCount: countOverride || (isMobile || isLowPerfDevice ? 5000 : 20000),
     starRadius: isMobile ? 100 : 300,
     starDepth: isMobile ? 20 : 30,
     starFactor: isMobile ? 3 : 4,

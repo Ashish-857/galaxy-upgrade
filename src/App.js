@@ -59,7 +59,7 @@ function App() {
         <Loading />
       ) : (
         <>
-          <Canvas dpr={[1, 1.5]} camera={{ position: window.innerWidth < 768 ? [0, 60, 180] : [0, 40, 120], far: 100000 }}>
+          <Canvas dpr={[1, 1]} camera={{ position: window.innerWidth < 768 ? [0, 60, 180] : [0, 40, 120], far: 100000 }}>
             <Suspense fallback={null}>
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} />
