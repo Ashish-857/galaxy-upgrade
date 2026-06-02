@@ -1,0 +1,41 @@
+.loading-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center;
+  height: 100vh;
+  background-color: #030303;
+  padding: 20px; 
+  box-sizing: border-box;
+}
+.first-image {
+  width: 1000px; 
+  height: auto; 
+  margin-bottom: 20px;
+}
+.second-image {
+  width: 100px; 
+  height: auto; 
+}
+
+
+@media (max-width: 768px) {
+  .first-image {
+    width: 500px;
+  }
+
+  .second-image {
+    width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .first-image {
+    width: 400px;
+    height: 200px;
+  }
+
+  .second-image {
+    width: 60px; 
+  }
+}
