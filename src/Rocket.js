@@ -56,7 +56,6 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
   const hasSetStartPos = useRef(false)
   const moonRef = useRef()
   const cloudsRef = useRef()
-  const sunMaterialRef = useRef()
 
   useEffect(() => {
     // If the user tries to scroll, click, or touch during the intro, immediately give them control
