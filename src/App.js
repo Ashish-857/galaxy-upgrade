@@ -13,7 +13,14 @@ import { PLANET_DATA } from './PlanetData';
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [focusedPlanetIndex, setFocusedPlanetIndex] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const audioRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -109,17 +116,25 @@ function App() {
       {/* 2D HTML UI Overlay */}
       {!isLoading && (
         <>
-          {/* Left Sidebar */}
+          {/* Sidebar / Bottom Bar */}
           <div style={{
             position: 'absolute',
-            top: 0, left: 0, height: '100%', width: '250px',
-            background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
-            display: 'flex', flexDirection: 'column',
-            padding: '20px', boxSizing: 'border-box',
+            ...(isMobile ? {
+              bottom: 0, left: 0, width: '100%', height: 'auto',
+              flexDirection: 'row', overflowX: 'auto', padding: '15px 10px',
+              background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
+            } : {
+              top: 0, left: 0, height: '100%', width: '250px',
+              flexDirection: 'column', padding: '20px',
+              background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+            }),
+            display: 'flex', boxSizing: 'border-box',
             zIndex: 10, pointerEvents: 'none'
           }}>
-            <h1 style={{ color: 'white', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '40px', fontSize: '24px', pointerEvents: 'auto' }}>Solar System</h1>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', pointerEvents: 'auto' }}>
+            {!isMobile && (
+              <h1 style={{ color: 'white', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '40px', fontSize: '24px', pointerEvents: 'auto' }}>Solar System</h1>
+            )}
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: '15px', pointerEvents: 'auto', paddingRight: isMobile ? '20px' : '0' }}>
               <button 
                 onClick={() => setFocusedPlanetIndex(null)}
                 style={{
@@ -127,7 +142,7 @@ function App() {
                   border: '1px solid rgba(255,255,255,0.4)',
                   color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
                   textAlign: 'left', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px',
-                  transition: 'all 0.3s ease'
+                  whiteSpace: 'nowrap', transition: 'all 0.3s ease'
                 }}
               >
                 The Sun
@@ -141,41 +156,47 @@ function App() {
                     border: focusedPlanetIndex === index ? '1px solid white' : '1px solid transparent',
                     color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
                     textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px',
-                    display: 'flex', alignItems: 'center', gap: '10px',
+                    display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap',
                     transition: 'all 0.3s ease'
                   }}
                 >
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: planet.color, boxShadow: `0 0 8px ${planet.color}` }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: planet.color, boxShadow: `0 0 8px ${planet.color}`, flexShrink: 0 }} />
                   {planet.name}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Right Info Panel */}
+          {/* Right Info Panel / Top Panel on Mobile */}
           <div style={{
             position: 'absolute',
-            top: '50%', right: focusedPlanetIndex !== null ? '40px' : '-400px',
-            transform: 'translateY(-50%)',
-            width: '320px',
+            ...(isMobile ? {
+              top: focusedPlanetIndex !== null ? '20px' : '-400px',
+              left: '50%', transform: 'translateX(-50%)',
+              width: '90%', right: 'auto',
+              transition: 'top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            } : {
+              top: '50%', right: focusedPlanetIndex !== null ? '40px' : '-400px',
+              transform: 'translateY(-50%)', width: '320px', left: 'auto',
+              transition: 'right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            }),
             background: 'rgba(10, 15, 30, 0.85)',
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '16px',
-            padding: '30px', boxSizing: 'border-box',
-            zIndex: 10, transition: 'right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+            padding: isMobile ? '20px' : '30px', boxSizing: 'border-box',
+            zIndex: 10, boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
           }}>
             {focusedPlanetIndex !== null && (
               <>
-                <h2 style={{ color: PLANET_DATA[focusedPlanetIndex].color, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 10px 0', fontSize: '32px' }}>
+                <h2 style={{ color: PLANET_DATA[focusedPlanetIndex].color, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 10px 0', fontSize: isMobile ? '24px' : '32px' }}>
                   {PLANET_DATA[focusedPlanetIndex].name}
                 </h2>
-                <div style={{ width: '100%', height: '2px', background: `linear-gradient(90deg, ${PLANET_DATA[focusedPlanetIndex].color}, transparent)`, marginBottom: '20px' }} />
-                <p style={{ color: '#cccccc', lineHeight: '1.6', fontSize: '15px' }}>
+                <div style={{ width: '100%', height: '2px', background: `linear-gradient(90deg, ${PLANET_DATA[focusedPlanetIndex].color}, transparent)`, marginBottom: isMobile ? '15px' : '20px' }} />
+                <p style={{ color: '#cccccc', lineHeight: '1.6', fontSize: isMobile ? '13px' : '15px', marginBottom: isMobile ? '15px' : '20px', display: isMobile ? '-webkit-box' : 'block', WebkitLineClamp: isMobile ? 3 : 'none', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {PLANET_DATA[focusedPlanetIndex].info}
                 </p>
-                <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: isMobile ? '13px' : '15px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '5px' }}>
                     <span style={{ color: '#888' }}>Type</span>
                     <span style={{ color: 'white', textTransform: 'capitalize' }}>{PLANET_DATA[focusedPlanetIndex].type}</span>
@@ -188,10 +209,10 @@ function App() {
                 <button 
                   onClick={() => setFocusedPlanetIndex(null)}
                   style={{
-                    marginTop: '30px', width: '100%', background: 'transparent',
+                    marginTop: isMobile ? '20px' : '30px', width: '100%', background: 'transparent',
                     border: '1px solid rgba(255,255,255,0.3)', color: 'white',
                     padding: '10px', borderRadius: '8px', cursor: 'pointer',
-                    textTransform: 'uppercase', letterSpacing: '1px'
+                    textTransform: 'uppercase', letterSpacing: '1px', fontSize: isMobile ? '12px' : '14px'
                   }}
                 >
                   Return to Sun
