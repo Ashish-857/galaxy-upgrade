@@ -1,8 +1,9 @@
 import React, { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-const Universe = ({ children }) => {
+const Universe = ({ children, isPaused }) => {
   const universeRef = useRef()
+  const timeRef = useRef(0)
   const universeStars = React.useMemo(() => {
     const starGeometry = new THREE.BufferGeometry()
     const starMaterial = new THREE.PointsMaterial({
@@ -22,9 +23,10 @@ const Universe = ({ children }) => {
     return new THREE.Points(starGeometry, starMaterial)
   }, [])
 
-  useFrame(() => {
+  useFrame((state, delta) => {
+    timeRef.current += isPaused ? delta * 0.02 : delta;
     if (universeRef.current) {
-      universeRef.current.rotation.y += 0.0005
+      universeRef.current.rotation.y = timeRef.current * 0.0005
     }
   })
   return (

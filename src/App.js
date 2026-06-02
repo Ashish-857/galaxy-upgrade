@@ -8,8 +8,11 @@ import Rocket from './Rocket';
 import RotatingStars from './RotatingStars';
 import Universe from './Universe';
 
+import { PLANET_DATA } from './PlanetData';
+
 function App() {
   const [isLoading, setIsLoading] = useState(true);
+  const [focusedPlanetIndex, setFocusedPlanetIndex] = useState(null);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -61,8 +64,10 @@ function App() {
     };
   }, []);
 
+  const isPaused = focusedPlanetIndex !== null;
+
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', fontFamily: '"Inter", "Segoe UI", Roboto, sans-serif' }}>
       {/* Hidden Audio Element */}
       <audio 
         ref={audioRef} 
@@ -70,10 +75,11 @@ function App() {
         loop 
       />
 
-      {isLoading ? (
-        <Loading />
-      ) : (
-        <>
+      {/* 3D Canvas Context */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
+        {isLoading ? (
+          <Loading />
+        ) : (
           <Canvas dpr={[1, 1]} camera={{ position: window.innerWidth < 768 ? [0, 60, 180] : [0, 40, 120], far: 100000 }}>
             <Suspense fallback={null}>
               <ambientLight intensity={0.5} />
@@ -82,21 +88,117 @@ function App() {
                 makeDefault
                 enableDamping={true}
                 dampingFactor={0.05}
-                autoRotate={true}
+                autoRotate={!isPaused}
                 autoRotateSpeed={0.5}
                 minDistance={1}
-                maxDistance={5000}
+                maxDistance={12000}
               />
               <EffectComposer>
                 <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} height={300} />
               </EffectComposer>
-              <Universe>
-                <Galaxy />
-                <Rocket />
-                <RotatingStars />
+              <Universe isPaused={isPaused}>
+                <Galaxy isPaused={isPaused} />
+                <Rocket focusedPlanetIndex={focusedPlanetIndex} setFocusedPlanetIndex={setFocusedPlanetIndex} isPaused={isPaused} />
+                <RotatingStars isPaused={isPaused} />
               </Universe>
             </Suspense>
           </Canvas>
+        )}
+      </div>
+
+      {/* 2D HTML UI Overlay */}
+      {!isLoading && (
+        <>
+          {/* Left Sidebar */}
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, height: '100%', width: '250px',
+            background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+            display: 'flex', flexDirection: 'column',
+            padding: '20px', boxSizing: 'border-box',
+            zIndex: 10, pointerEvents: 'none'
+          }}>
+            <h1 style={{ color: 'white', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '40px', fontSize: '24px', pointerEvents: 'auto' }}>Solar System</h1>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', pointerEvents: 'auto' }}>
+              <button 
+                onClick={() => setFocusedPlanetIndex(null)}
+                style={{
+                  background: focusedPlanetIndex === null ? 'rgba(255,255,255,0.2)' : 'transparent',
+                  border: '1px solid rgba(255,255,255,0.4)',
+                  color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
+                  textAlign: 'left', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                The Sun
+              </button>
+              {PLANET_DATA.map((planet, index) => (
+                <button
+                  key={index}
+                  onClick={() => setFocusedPlanetIndex(index)}
+                  style={{
+                    background: focusedPlanetIndex === index ? 'rgba(255,255,255,0.2)' : 'transparent',
+                    border: focusedPlanetIndex === index ? '1px solid white' : '1px solid transparent',
+                    color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
+                    textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px',
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: planet.color, boxShadow: `0 0 8px ${planet.color}` }} />
+                  {planet.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Info Panel */}
+          <div style={{
+            position: 'absolute',
+            top: '50%', right: focusedPlanetIndex !== null ? '40px' : '-400px',
+            transform: 'translateY(-50%)',
+            width: '320px',
+            background: 'rgba(10, 15, 30, 0.85)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '16px',
+            padding: '30px', boxSizing: 'border-box',
+            zIndex: 10, transition: 'right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+          }}>
+            {focusedPlanetIndex !== null && (
+              <>
+                <h2 style={{ color: PLANET_DATA[focusedPlanetIndex].color, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 10px 0', fontSize: '32px' }}>
+                  {PLANET_DATA[focusedPlanetIndex].name}
+                </h2>
+                <div style={{ width: '100%', height: '2px', background: `linear-gradient(90deg, ${PLANET_DATA[focusedPlanetIndex].color}, transparent)`, marginBottom: '20px' }} />
+                <p style={{ color: '#cccccc', lineHeight: '1.6', fontSize: '15px' }}>
+                  {PLANET_DATA[focusedPlanetIndex].info}
+                </p>
+                <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '5px' }}>
+                    <span style={{ color: '#888' }}>Type</span>
+                    <span style={{ color: 'white', textTransform: 'capitalize' }}>{PLANET_DATA[focusedPlanetIndex].type}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '5px' }}>
+                    <span style={{ color: '#888' }}>Orbit Radius</span>
+                    <span style={{ color: 'white' }}>{PLANET_DATA[focusedPlanetIndex].baseOrbitRadius} Million km</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setFocusedPlanetIndex(null)}
+                  style={{
+                    marginTop: '30px', width: '100%', background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.3)', color: 'white',
+                    padding: '10px', borderRadius: '8px', cursor: 'pointer',
+                    textTransform: 'uppercase', letterSpacing: '1px'
+                  }}
+                >
+                  Return to Sun
+                </button>
+              </>
+            )}
+          </div>
         </>
       )}
     </div>

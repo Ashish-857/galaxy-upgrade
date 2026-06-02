@@ -1,56 +1,66 @@
 import React, { useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 
-
-const createGalaxyParticles = (radius, spread, count) => {
+// Creates a beautiful spiral galaxy
+const createSpiralGalaxy = (radius, count, armCount, spin, spread) => {
   return Array.from({ length: count }, () => {
-    const t = Math.random() * 2 * Math.PI
-    const r = radius + Math.random() * spread
-    const x = r * Math.cos(t)
-    const y = r * Math.sin(t)
-    const z = (Math.random() - 0.5) * spread
+    // Start arms outside the solar system (radius > 400)
+    const minR = 400;
+    const r = minR + Math.random() * (radius - minR);
+    
+    const armIndex = Math.floor(Math.random() * armCount);
+    const armOffset = (Math.PI * 2) / armCount * armIndex;
+    
+    // Spin factor creates the spiral curve
+    const spinAngle = r * spin / radius;
+    
+    // Spread increases as we go further out
+    const currentSpread = r * spread;
+    const randomX = (Math.random() - 0.5) * currentSpread;
+    const randomY = (Math.random() - 0.5) * currentSpread * 0.3; // Flat disk shape
+    const randomZ = (Math.random() - 0.5) * currentSpread;
+
+    const angle = spinAngle + armOffset;
+
+    const x = Math.cos(angle) * r + randomX;
+    const y = randomY;
+    const z = Math.sin(angle) * r + randomZ;
+    
     return { x, y, z }
   })
 }
 
-const Galaxy = () => {
-  const { size, } = useThree()
+const Galaxy = ({ isPaused }) => {
+  const { size } = useThree()
   const scaleFactor = Math.min(size.width, size.height) / 1000
 
-  const galaxyRefs = useRef(Array(14).fill().map(() => React.createRef()))
+  const galaxyGroupRef = useRef()
+  const timeRef = useRef(0)
 
   const galaxies = useMemo(() => [
-    { particles: createGalaxyParticles(0 * scaleFactor, 1 * scaleFactor, 500), color: '#FF0000', size: 3* scaleFactor, speed: 0.5 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 2 * scaleFactor, 500), color: '#FF0000', size: 3* scaleFactor, speed: 0.5 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 6 * scaleFactor, 500), color: '#FF0000', size: 0.09 * scaleFactor, speed: 0.5 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 8 * scaleFactor, 750), color: '#FFA500', size: 0.09 * scaleFactor, speed: 0.4 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 15 * scaleFactor, 750), color: '#FFA500', size: 0.09 * scaleFactor, speed: 0.4 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 25 * scaleFactor, 1000), color: '#FFA500', size: 0.09 * scaleFactor, speed: 0.3 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 30 * scaleFactor, 1000), color: '#FF0000', size: 0.09 * scaleFactor, speed: 0.2 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 38 * scaleFactor, 750), color: '#FFA500', size: 0.09 * scaleFactor, speed: 0.4 },
-    { particles: createGalaxyParticles(0 * scaleFactor, 48 * scaleFactor, 750), color: '#FFA500', size: 0.09 * scaleFactor, speed: 0.4 },
-    { particles: createGalaxyParticles(1000 * scaleFactor, 1000000000000000 * scaleFactor, 1500), color: '#e62020', size: 50 * scaleFactor, speed: 0.2 },
-    { particles: createGalaxyParticles(1000 * scaleFactor, 1000000000000000  * scaleFactor, 1500), color: '#ffdb58', size: 50 * scaleFactor, speed: 0.2 },
-    { particles: createGalaxyParticles(1000 * scaleFactor, 1000000000000000000  * scaleFactor, 1500), color: '#e62020', size: 500 * scaleFactor, speed: 0.2 },
-    { particles: createGalaxyParticles(1000 * scaleFactor, 1000000000000000000  * scaleFactor, 1500), color: '#ffdb58', size: 500 * scaleFactor, speed: 0.2 },
-    { particles: createGalaxyParticles(1400 * scaleFactor, 1000 * scaleFactor, 1500), color: '#f0f0f0', size: 0.09 * scaleFactor, speed: 0.4 },
+    // Inner bright spiral arms starting right outside the solar system
+    { particles: createSpiralGalaxy(1500 * scaleFactor, 5000, 4, 2, 0.15), color: '#ffffff', size: 5 * scaleFactor },
+    // Majestic Spiral Arms
+    { particles: createSpiralGalaxy(2500 * scaleFactor, 8000, 4, 3, 0.2), color: '#3388ff', size: 4 * scaleFactor },
+    { particles: createSpiralGalaxy(4000 * scaleFactor, 8000, 4, 3.5, 0.25), color: '#aa33ff', size: 3 * scaleFactor },
+    { particles: createSpiralGalaxy(5500 * scaleFactor, 8000, 4, 4, 0.3), color: '#ff3366', size: 4 * scaleFactor },
+    // Outer scattered star dust
+    { particles: createSpiralGalaxy(7000 * scaleFactor, 5000, 4, 4.5, 0.6), color: '#555555', size: 2 * scaleFactor },
   ], [scaleFactor])
 
-  useFrame(({ clock }) => {
-    const elapsedTime = clock.getElapsedTime() * 0.1 // Slowed down by 10x
-    galaxyRefs.current.forEach((ref, index) => {
-      if (ref.current) {
-        const speed = galaxies[index].speed
-        ref.current.rotation.y = elapsedTime * speed * (index % 4 ? 1.5 : -1.5)
-        ref.current.rotation.x = elapsedTime * (speed / 2) * (index * 4 ? -1.5 : 1.5)
-      }
-    })
+  useFrame((state, delta) => {
+    timeRef.current += isPaused ? delta * 0.02 : delta;
+    if (galaxyGroupRef.current) {
+      // Extremely slow majestic spin of the entire galaxy
+      galaxyGroupRef.current.rotation.y = timeRef.current * 0.02
+    }
   })
 
   return (
-    <>
+    <group ref={galaxyGroupRef}>
       {galaxies.map((galaxy, index) => (
-        <points key={index} ref={galaxyRefs.current[index]}>
+        <points key={index}>
           <bufferGeometry>
             <float32BufferAttribute
               attach="attributes-position"
@@ -59,10 +69,18 @@ const Galaxy = () => {
               itemSize={3}
             />
           </bufferGeometry>
-          <pointsMaterial size={galaxy.size} color={galaxy.color} sizeAttenuation transparent opacity={0.8} />
+          <pointsMaterial 
+            size={galaxy.size} 
+            color={galaxy.color} 
+            sizeAttenuation 
+            transparent 
+            opacity={0.8}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
         </points>
       ))}
-    </>
+    </group>
   )
 }
 
