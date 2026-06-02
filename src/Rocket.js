@@ -28,6 +28,7 @@ const PlanetMaterial = ({ planet }) => {
   )
 }
 
+
 const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
   const { size } = useThree()
   const scaleFactor = Math.min(size.width, size.height) / 1000
@@ -37,6 +38,9 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
 
   const isAnimatingRef = useRef(false)
   const prevFocusedRef = useRef(focusedPlanetIndex)
+  const introAnimatingRef = useRef(true)
+  const hasSetStartPos = useRef(false)
+  const moonRef = useRef()
 
   useFrame((state, delta) => {
     // Accumulate time gracefully: slow down to 2% speed if paused
@@ -54,12 +58,43 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         const t = -((timeRef.current * planet.speed) + offset)
         planetRefs.current[index].current.position.x = Math.cos(t) * orbitRadius
         planetRefs.current[index].current.position.z = Math.sin(t) * orbitRadius
-        // Reverse rotation for Venus and Uranus if we wanted to be super accurate, but generic is fine
-        planetRefs.current[index].current.rotation.y = t * 0.5 
+        
+        // Realistic planet self-rotation: Gas giants spin very fast, inner planets slower
+        const rotationSpeed = planet.type === 'gas' ? 2.5 : 0.8;
+        planetRefs.current[index].current.rotation.y += delta * rotationSpeed * (isPaused ? 0.02 : 1);
       }
     })
 
+    // Update Earth's Moon
+    if (moonRef.current && planetRefs.current[2] && planetRefs.current[2].current) {
+      const moonT = -(timeRef.current * 1.5); // Moon orbits fast
+      const earthRadius = PLANET_DATA[2].baseRadius * scaleFactor;
+      const moonRadius = earthRadius * 4;
+      moonRef.current.position.x = planetRefs.current[2].current.position.x + Math.cos(moonT) * moonRadius;
+      moonRef.current.position.z = planetRefs.current[2].current.position.z + Math.sin(moonT) * moonRadius;
+      moonRef.current.position.y = Math.sin(moonT * 0.5) * (moonRadius * 0.3); // slight inclination
+      moonRef.current.rotation.y += delta * 0.5;
+    }
+
     if (state.controls) {
+      // Cinematic Intro Fly-Through
+      if (introAnimatingRef.current && focusedPlanetIndex === null) {
+        const startPos = new THREE.Vector3(0, 1000, 2500);
+        const endPos = new THREE.Vector3(0, window.innerWidth < 768 ? 60 : 40, window.innerWidth < 768 ? 180 : 120);
+        
+        if (!hasSetStartPos.current) {
+          state.camera.position.copy(startPos);
+          hasSetStartPos.current = true;
+        }
+        
+        state.camera.position.lerp(endPos, 0.025); // Faster lerp so it finishes
+        state.controls.target.lerp(new THREE.Vector3(0,0,0), 0.05);
+
+        if (state.camera.position.distanceTo(endPos) < 20) {
+          introAnimatingRef.current = false;
+        }
+        return; // Skip normal focus logic during intro
+      }
       const target = new THREE.Vector3()
       if (focusedPlanetIndex !== null && planetRefs.current[focusedPlanetIndex] && planetRefs.current[focusedPlanetIndex].current) {
         planetRefs.current[focusedPlanetIndex].current.getWorldPosition(target)
@@ -70,7 +105,7 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         const currentDistance = state.camera.position.distanceTo(target)
         
         if (isAnimatingRef.current) {
-          if (Math.abs(currentDistance - desiredDistance) > 1) {
+          if (Math.abs(currentDistance - desiredDistance) > 5) {
             const direction = state.camera.position.clone().sub(target).normalize()
             if (direction.lengthSq() === 0) direction.set(0, 0, 1)
             const desiredPosition = target.clone().add(direction.multiplyScalar(desiredDistance))
@@ -87,7 +122,7 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         const currentDistance = state.camera.position.distanceTo(target)
         
         if (isAnimatingRef.current) {
-          if (Math.abs(currentDistance - desiredDistance) > 1) {
+          if (Math.abs(currentDistance - desiredDistance) > 5) {
             const direction = state.camera.position.clone().sub(target).normalize()
             if (direction.lengthSq() === 0) direction.set(0, 0, 1)
             const desiredPosition = target.clone().add(direction.multiplyScalar(desiredDistance))
@@ -134,6 +169,9 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         <React.Suspense fallback={<meshStandardMaterial color="#ffcc00" />}>
           <SunMaterial />
         </React.Suspense>
+        
+        {/* Photorealistic Soft Sun Glow Corona removed as per user request */}
+
         <pointLight intensity={4} distance={3000 * scaleFactor} decay={1} />
       </mesh>
 
@@ -174,6 +212,14 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
                 />
               </mesh>
             </mesh>
+
+            {/* Earth's Moon */}
+            {planet.name === 'Earth' && (
+              <mesh ref={moonRef}>
+                <sphereGeometry args={[radius * 0.25, 32, 32]} />
+                <meshStandardMaterial color="#cccccc" roughness={0.9} metalness={0.1} />
+              </mesh>
+            )}
 
             {/* Rings */}
             {planet.hasRing && (
