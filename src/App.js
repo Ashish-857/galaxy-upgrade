@@ -17,6 +17,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [focusedPlanetIndex, setFocusedPlanetIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -123,66 +124,104 @@ function App() {
       {/* 2D HTML UI Overlay */}
       {!isLoading && (
         <>
-          {/* Sidebar / Bottom Bar */}
-          <div style={{
-            position: 'absolute',
-            ...(isMobile ? {
-              bottom: 0, left: 0, width: '100%', height: 'auto',
-              padding: '15px 10px',
-              background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
-            } : {
-              top: 0, left: 0, height: '100%', width: '250px',
-              padding: '20px',
-              background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
-            }),
-            display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
-            zIndex: 10, pointerEvents: 'none'
-          }}>
-            {!isMobile && (
-              <h1 style={{ color: 'white', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '40px', fontSize: '24px', pointerEvents: 'auto' }}>Solar System</h1>
-            )}
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: isMobile ? 'row' : 'column', 
-              gap: '15px', 
-              pointerEvents: 'auto', 
-              paddingRight: isMobile ? '20px' : '0',
-              overflowX: isMobile ? 'auto' : 'visible',
-              maxWidth: '100vw',
-              WebkitOverflowScrolling: 'touch',
-              paddingBottom: isMobile ? '10px' : '0'
-            }}>
+          {isMobile ? (
+            <>
+              {/* Mobile Floating Menu Button */}
               <button 
-                onClick={() => setFocusedPlanetIndex(null)}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 style={{
-                  background: focusedPlanetIndex === null ? 'rgba(255,255,255,0.2)' : 'transparent',
-                  border: '1px solid rgba(255,255,255,0.4)',
-                  color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
-                  textAlign: 'left', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px',
-                  whiteSpace: 'nowrap', transition: 'all 0.3s ease'
+                  position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                  background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.4)', color: 'white',
+                  padding: '12px 24px', borderRadius: '25px', zIndex: 20, pointerEvents: 'auto',
+                  fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', backdropFilter: 'blur(5px)'
                 }}
               >
-                The Sun
+                {isMobileMenuOpen ? 'Close Menu' : 'Planets List'}
               </button>
-              {PLANET_DATA.map((planet, index) => (
-                <button
-                  key={index}
-                  onClick={() => setFocusedPlanetIndex(index)}
+
+              {/* Mobile Pop-up Menu */}
+              {isMobileMenuOpen && (
+                <div style={{
+                  position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
+                  width: '85%', maxHeight: '60vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+                  background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,255,255,0.2)', 
+                  borderRadius: '15px', padding: '15px', zIndex: 15, pointerEvents: 'auto',
+                  display: 'flex', flexDirection: 'column', gap: '10px', backdropFilter: 'blur(10px)'
+                }}>
+                  <button 
+                    onClick={() => { setFocusedPlanetIndex(null); setIsMobileMenuOpen(false); }}
+                    style={{
+                      background: focusedPlanetIndex === null ? 'rgba(255,255,255,0.2)' : 'transparent',
+                      border: '1px solid rgba(255,255,255,0.4)', color: 'white', padding: '12px 15px', 
+                      borderRadius: '8px', cursor: 'pointer', textAlign: 'center', fontWeight: 'bold', 
+                      textTransform: 'uppercase', letterSpacing: '1px'
+                    }}
+                  >
+                    The Sun
+                  </button>
+                  {PLANET_DATA.map((planet, index) => (
+                    <button
+                      key={index}
+                      onClick={() => { setFocusedPlanetIndex(index); setIsMobileMenuOpen(false); }}
+                      style={{
+                        background: focusedPlanetIndex === index ? 'rgba(255,255,255,0.2)' : 'transparent',
+                        border: focusedPlanetIndex === index ? '1px solid white' : '1px solid transparent',
+                        color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
+                        textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px',
+                        display: 'flex', alignItems: 'center', gap: '10px'
+                      }}
+                    >
+                      <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: planet.color, boxShadow: `0 0 8px ${planet.color}`, flexShrink: 0 }} />
+                      {planet.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{
+              position: 'absolute', top: 0, left: 0, height: '100%', width: '250px',
+              padding: '20px', background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+              display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
+              zIndex: 10, pointerEvents: 'none'
+            }}>
+              <h1 style={{ color: 'white', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '40px', fontSize: '24px', pointerEvents: 'auto' }}>Solar System</h1>
+              <div style={{ 
+                display: 'flex', flexDirection: 'column', gap: '15px', pointerEvents: 'auto', 
+                overflowY: 'auto', paddingRight: '10px', paddingBottom: '20px'
+              }}>
+                <button 
+                  onClick={() => setFocusedPlanetIndex(null)}
                   style={{
-                    background: focusedPlanetIndex === index ? 'rgba(255,255,255,0.2)' : 'transparent',
-                    border: focusedPlanetIndex === index ? '1px solid white' : '1px solid transparent',
+                    background: focusedPlanetIndex === null ? 'rgba(255,255,255,0.2)' : 'transparent',
+                    border: '1px solid rgba(255,255,255,0.4)',
                     color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
-                    textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px',
-                    display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap',
-                    transition: 'all 0.3s ease'
+                    textAlign: 'left', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px',
+                    whiteSpace: 'nowrap', transition: 'all 0.3s ease'
                   }}
                 >
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: planet.color, boxShadow: `0 0 8px ${planet.color}`, flexShrink: 0 }} />
-                  {planet.name}
+                  The Sun
                 </button>
-              ))}
+                {PLANET_DATA.map((planet, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setFocusedPlanetIndex(index)}
+                    style={{
+                      background: focusedPlanetIndex === index ? 'rgba(255,255,255,0.2)' : 'transparent',
+                      border: focusedPlanetIndex === index ? '1px solid white' : '1px solid transparent',
+                      color: 'white', padding: '12px 15px', borderRadius: '8px', cursor: 'pointer',
+                      textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px',
+                      display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: planet.color, boxShadow: `0 0 8px ${planet.color}`, flexShrink: 0 }} />
+                    {planet.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Right Info Panel / Top Panel on Mobile */}
           <div style={{
