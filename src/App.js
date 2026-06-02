@@ -89,8 +89,8 @@ function App() {
         ) : (
           <Canvas dpr={[1, 1]} camera={{ position: window.innerWidth < 768 ? [0, 60, 180] : [0, 40, 120], far: 100000 }}>
             <Suspense fallback={null}>
-              <ambientLight intensity={0.5} />
-              <pointLight position={[10, 10, 10]} />
+              <ambientLight intensity={1.5} />
+              <pointLight position={[0, 0, 0]} intensity={2} distance={5000} decay={1} />
               <OrbitControls 
                 makeDefault
                 enableDamping={true}

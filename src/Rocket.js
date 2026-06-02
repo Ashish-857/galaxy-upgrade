@@ -20,11 +20,10 @@ const SunMaterial = () => {
 const PlanetMaterial = ({ planet }) => {
   const texture = useTexture(planet.textureMap)
   return (
-    <meshPhysicalMaterial 
+    <meshStandardMaterial 
       map={texture}
-      roughness={planet.roughness !== undefined ? planet.roughness : 0.5}
+      roughness={planet.roughness !== undefined ? planet.roughness : 0.6}
       metalness={planet.metalness !== undefined ? planet.metalness : 0.1}
-      envMapIntensity={2}
     />
   )
 }
@@ -135,7 +134,7 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         <React.Suspense fallback={<meshStandardMaterial color="#ffcc00" />}>
           <SunMaterial />
         </React.Suspense>
-        <pointLight intensity={2} distance={2000 * scaleFactor} decay={2} />
+        <pointLight intensity={4} distance={3000 * scaleFactor} decay={1} />
       </mesh>
 
       {PLANET_DATA.map((planet, index) => {
