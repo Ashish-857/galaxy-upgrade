@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
@@ -56,6 +56,23 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
   const hasSetStartPos = useRef(false)
   const moonRef = useRef()
   const cloudsRef = useRef()
+  const sunMaterialRef = useRef()
+
+  useEffect(() => {
+    // If the user tries to scroll, click, or touch during the intro, immediately give them control
+    const cancelIntro = () => {
+      introAnimatingRef.current = false;
+    };
+    window.addEventListener('wheel', cancelIntro, { passive: true });
+    window.addEventListener('pointerdown', cancelIntro, { passive: true });
+    window.addEventListener('touchstart', cancelIntro, { passive: true });
+    
+    return () => {
+      window.removeEventListener('wheel', cancelIntro);
+      window.removeEventListener('pointerdown', cancelIntro);
+      window.removeEventListener('touchstart', cancelIntro);
+    };
+  }, []);
 
   useFrame((state, delta) => {
     // Accumulate time gracefully: slow down to very slow speed if paused, and general speed is now 5x slower
