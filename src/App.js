@@ -128,20 +128,30 @@ function App() {
             position: 'absolute',
             ...(isMobile ? {
               bottom: 0, left: 0, width: '100%', height: 'auto',
-              flexDirection: 'row', overflowX: 'auto', padding: '15px 10px',
+              padding: '15px 10px',
               background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
             } : {
               top: 0, left: 0, height: '100%', width: '250px',
-              flexDirection: 'column', padding: '20px',
+              padding: '20px',
               background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
             }),
-            display: 'flex', boxSizing: 'border-box',
+            display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
             zIndex: 10, pointerEvents: 'none'
           }}>
             {!isMobile && (
               <h1 style={{ color: 'white', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '40px', fontSize: '24px', pointerEvents: 'auto' }}>Solar System</h1>
             )}
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: '15px', pointerEvents: 'auto', paddingRight: isMobile ? '20px' : '0' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: isMobile ? 'row' : 'column', 
+              gap: '15px', 
+              pointerEvents: 'auto', 
+              paddingRight: isMobile ? '20px' : '0',
+              overflowX: isMobile ? 'auto' : 'visible',
+              maxWidth: '100vw',
+              WebkitOverflowScrolling: 'touch',
+              paddingBottom: isMobile ? '10px' : '0'
+            }}>
               <button 
                 onClick={() => setFocusedPlanetIndex(null)}
                 style={{
