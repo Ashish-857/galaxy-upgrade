@@ -1,7 +1,33 @@
 import React, { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
+import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { PLANET_DATA } from './PlanetData'
+
+const SunMaterial = () => {
+  const texture = useTexture('/textures/sun.jpg')
+  return (
+    <meshStandardMaterial 
+      map={texture}
+      emissiveMap={texture}
+      emissive="#ffffff" 
+      emissiveIntensity={1.5} 
+      toneMapped={false}
+    />
+  )
+}
+
+const PlanetMaterial = ({ planet }) => {
+  const texture = useTexture(planet.textureMap)
+  return (
+    <meshPhysicalMaterial 
+      map={texture}
+      roughness={planet.roughness !== undefined ? planet.roughness : 0.5}
+      metalness={planet.metalness !== undefined ? planet.metalness : 0.1}
+      envMapIntensity={2}
+    />
+  )
+}
 
 const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
   const { size } = useThree()
@@ -29,6 +55,7 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         const t = -((timeRef.current * planet.speed) + offset)
         planetRefs.current[index].current.position.x = Math.cos(t) * orbitRadius
         planetRefs.current[index].current.position.z = Math.sin(t) * orbitRadius
+        // Reverse rotation for Venus and Uranus if we wanted to be super accurate, but generic is fine
         planetRefs.current[index].current.rotation.y = t * 0.5 
       }
     })
@@ -105,12 +132,9 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         onPointerOut={() => document.body.style.cursor = 'auto'}
       >
         <sphereGeometry args={[25 * scaleFactor, 64, 64]} />
-        <meshStandardMaterial 
-          color="#ffcc00" 
-          emissive="#ff8800" 
-          emissiveIntensity={2} 
-          toneMapped={false}
-        />
+        <React.Suspense fallback={<meshStandardMaterial color="#ffcc00" />}>
+          <SunMaterial />
+        </React.Suspense>
         <pointLight intensity={2} distance={2000 * scaleFactor} decay={2} />
       </mesh>
 
@@ -135,25 +159,17 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
             >
               <sphereGeometry args={[radius, 64, 64]} />
               
-              {/* Procedural Gem/Gas Material for extreme realism without external images */}
-              <meshPhysicalMaterial 
-                color={planet.color}
-                roughness={planet.roughness !== undefined ? planet.roughness : 0.2}
-                metalness={planet.metalness !== undefined ? planet.metalness : 0.1}
-                transmission={planet.transmission || 0}
-                thickness={planet.thickness || 0}
-                clearcoat={planet.clearcoat || 0}
-                clearcoatRoughness={planet.clearcoatRoughness || 0}
-                envMapIntensity={2}
-              />
+              <React.Suspense fallback={<meshPhysicalMaterial color={planet.color} />}>
+                <PlanetMaterial planet={planet} />
+              </React.Suspense>
 
-              {/* Atmosphere layer */}
+              {/* Atmosphere layer for added realism */}
               <mesh>
                 <sphereGeometry args={[radius * 1.05, 64, 64]} />
                 <meshBasicMaterial 
                   color={planet.color} 
                   transparent={true} 
-                  opacity={0.2} 
+                  opacity={0.15} 
                   blending={THREE.AdditiveBlending}
                   depthWrite={false}
                 />
