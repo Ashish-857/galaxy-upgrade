@@ -130,7 +130,7 @@ function App() {
               <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 style={{
-                  position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                  position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
                   background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.4)', color: 'white',
                   padding: '12px 24px', borderRadius: '25px', zIndex: 20, pointerEvents: 'auto',
                   fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', backdropFilter: 'blur(5px)'
@@ -142,7 +142,7 @@ function App() {
               {/* Mobile Pop-up Menu */}
               {isMobileMenuOpen && (
                 <div style={{
-                  position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
+                  position: 'absolute', bottom: '100px', left: '50%', transform: 'translateX(-50%)',
                   width: '85%', maxHeight: '60vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
                   background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,255,255,0.2)', 
                   borderRadius: '15px', padding: '15px', zIndex: 15, pointerEvents: 'auto',
