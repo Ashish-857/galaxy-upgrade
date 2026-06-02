@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Sphere, Ring } from '@react-three/drei'
-import * as THREE from 'three'
+
 
 function BlackHole() {
   const ringsRef = useRef([])

@@ -8,7 +8,7 @@ import Galaxy from './Galaxy';
 import Rocket from './Rocket';
 import RotatingStars from './RotatingStars';
 import Universe from './Universe';
-import BlackHole from './BlackHole';
+
 
 
 function App() {
