@@ -24,7 +24,7 @@ const Universe = ({ children }) => {
 
   useFrame(() => {
     if (universeRef.current) {
-      universeRef.current.rotation.y += 0.0032
+      universeRef.current.rotation.y += 0.0005
     }
   })
   return (

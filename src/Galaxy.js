@@ -37,7 +37,7 @@ const Galaxy = () => {
   ], [scaleFactor])
 
   useFrame(({ clock }) => {
-    const elapsedTime = clock.getElapsedTime()
+    const elapsedTime = clock.getElapsedTime() * 0.1 // Slowed down by 10x
     galaxyRefs.current.forEach((ref, index) => {
       if (ref.current) {
         const speed = galaxies[index].speed

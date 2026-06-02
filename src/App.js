@@ -64,6 +64,7 @@ function App() {
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} />
               <OrbitControls 
+                makeDefault
                 enableDamping={true}
                 dampingFactor={0.05}
                 autoRotate={true}

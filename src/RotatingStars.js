@@ -21,8 +21,8 @@ const RotatingStars = ({ countOverride, fade = false }) => {
     starRadius: isMobile ? 100 : 300,
     starDepth: isMobile ? 20 : 30,
     starFactor: isMobile ? 3 : 4,
-    rotationSpeed: isMobile ? 0.06 : 0.08,
-    starSpeed: isMobile ? 3 : 5
+    rotationSpeed: isMobile ? 0.01 : 0.015,
+    starSpeed: isMobile ? 1 : 2
   }), [isMobile, isLowPerfDevice, countOverride])
 
   useFrame(({ clock }) => {

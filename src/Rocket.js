@@ -8,6 +8,7 @@ const Planet = () => {
   const scaleFactor = Math.min(size.width, size.height) / 1000
 
   const planetRefs = useRef(Array(8).fill().map(() => React.createRef()))
+  const [focusedPlanet, setFocusedPlanet] = React.useState(null)
 
   const planetData = useMemo(() => [
     { name: 'Mercury', radius: 2 * scaleFactor, orbitRadius: 50 * scaleFactor, color: '#a8a8a8', speed: 0.16, type: 'rock', metalness: 0.8, roughness: 0.4, offset: Math.random() * Math.PI * 2 },
@@ -20,15 +21,26 @@ const Planet = () => {
     { name: 'Neptune', radius: 7 * scaleFactor, orbitRadius: 320 * scaleFactor, color: '#3b59ff', speed: 0.006, type: 'gas', transmission: 0.5, thickness: 2, offset: Math.random() * Math.PI * 2 },
   ], [scaleFactor])
 
-  useFrame(({ clock }) => {
+  useFrame((state) => {
+    const clock = state.clock;
     planetRefs.current.forEach((ref, index) => {
       if (ref.current) {
-        const t = (clock.getElapsedTime() * planetData[index].speed) + planetData[index].offset
+        const t = -((clock.getElapsedTime() * planetData[index].speed) + planetData[index].offset)
         ref.current.position.x = Math.cos(t) * planetData[index].orbitRadius
         ref.current.position.z = Math.sin(t) * planetData[index].orbitRadius
         ref.current.rotation.y = t * 0.5 // self rotation
       }
     })
+
+    if (state.controls) {
+      const target = new THREE.Vector3()
+      if (focusedPlanet !== null && planetRefs.current[focusedPlanet].current) {
+        planetRefs.current[focusedPlanet].current.getWorldPosition(target)
+      } else {
+        target.set(0, 0, 0)
+      }
+      state.controls.target.lerp(target, 0.05)
+    }
   })
 
   const Ring = ({ radius, tubeRadius, colors, planetRef }) => {
@@ -54,8 +66,12 @@ const Planet = () => {
 
   return (
     <>
-      {/* Sun */}
-      <mesh>
+      {/* Hyper-realistic Sun */}
+      <mesh
+        onClick={(e) => { e.stopPropagation(); setFocusedPlanet(null); }}
+        onPointerOver={() => document.body.style.cursor = 'pointer'}
+        onPointerOut={() => document.body.style.cursor = 'auto'}
+      >
         <sphereGeometry args={[25 * scaleFactor, 64, 64]} />
         <meshStandardMaterial 
           color="#ffcc00" 
@@ -75,7 +91,12 @@ const Planet = () => {
           </mesh>
 
           {/* Planet */}
-          <mesh ref={planetRefs.current[index]}>
+          <mesh 
+            ref={planetRefs.current[index]}
+            onClick={(e) => { e.stopPropagation(); setFocusedPlanet(index); }}
+            onPointerOver={() => document.body.style.cursor = 'pointer'}
+            onPointerOut={() => document.body.style.cursor = 'auto'}
+          >
             <sphereGeometry args={[planet.radius, 64, 64]} />
             
             {/* Procedural Gem/Gas Material for extreme realism without external images */}
