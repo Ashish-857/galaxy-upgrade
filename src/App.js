@@ -20,7 +20,7 @@ function App() {
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
-    }, 100);
+    }, 5000);
   }, []);
 
   const startAudio = useCallback(() => {
