@@ -9,6 +9,7 @@ import RotatingStars from './RotatingStars';
 import Universe from './Universe';
 import AsteroidBelt from './AsteroidBelt';
 import { Voyager } from './Spacecrafts';
+import SpatialAudio from './SpatialAudio';
 
 import { PLANET_DATA } from './PlanetData';
 
@@ -89,9 +90,11 @@ function App() {
         {isLoading ? (
           <Loading />
         ) : (
-          <Canvas dpr={[1, 1]} camera={{ position: window.innerWidth < 768 ? [0, 60, 180] : [0, 40, 120], far: 100000 }}>
+        <Canvas dpr={[1, 1]} camera={{ position: window.innerWidth < 768 ? [0, 60, 180] : [0, 40, 120], far: 100000 }} shadows>
+            <color attach="background" args={['#000000']} />
+            <ambientLight intensity={1.5} />
+            <SpatialAudio />
             <Suspense fallback={null}>
-              <ambientLight intensity={1.5} />
               <pointLight position={[0, 0, 0]} intensity={2} distance={5000} decay={1} />
               <OrbitControls 
                 makeDefault

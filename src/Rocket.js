@@ -190,9 +190,7 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
           <SunMaterial />
         </React.Suspense>
         
-        {/* Photorealistic Soft Sun Glow Corona removed as per user request */}
-
-        <pointLight intensity={4} distance={3000 * scaleFactor} decay={1} />
+        <pointLight intensity={4} distance={3000 * scaleFactor} decay={1} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0001} />
       </mesh>
 
       {PLANET_DATA.map((planet, index) => {
@@ -204,7 +202,7 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
             {/* Planet Orbit Path */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <ringGeometry args={[orbitRadius - 0.2, orbitRadius + 0.2, 128]} />
-              <meshBasicMaterial color="#ffffff" transparent opacity={0.05} side={THREE.DoubleSide} />
+              <meshBasicMaterial color={planet.color} transparent opacity={0.2} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
             </mesh>
 
             {/* Planet */}
@@ -214,11 +212,13 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
               onPointerOver={() => document.body.style.cursor = 'pointer'}
               onPointerOut={() => document.body.style.cursor = 'auto'}
             >
-              <sphereGeometry args={[radius, 64, 64]} />
-              
-              <React.Suspense fallback={<meshPhysicalMaterial color={planet.color} />}>
-                <PlanetMaterial planet={planet} />
-              </React.Suspense>
+              <mesh castShadow receiveShadow>
+                <sphereGeometry args={[radius, 64, 64]} />
+                
+                <React.Suspense fallback={<meshPhysicalMaterial color={planet.color} />}>
+                  <PlanetMaterial planet={planet} />
+                </React.Suspense>
+              </mesh>
 
               {/* Atmosphere/Clouds layer for added realism */}
               <mesh ref={planet.name === 'Earth' ? cloudsRef : null}>
@@ -242,7 +242,7 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
             {/* Earth's Moon & ISS */}
             {planet.name === 'Earth' && (
               <>
-                <mesh ref={moonRef}>
+                <mesh ref={moonRef} castShadow receiveShadow>
                   <sphereGeometry args={[radius * 0.25, 32, 32]} />
                   <meshStandardMaterial color="#cccccc" roughness={0.9} metalness={0.1} />
                 </mesh>

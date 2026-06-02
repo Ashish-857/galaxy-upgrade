@@ -1,39 +1,35 @@
-import React, { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-const Universe = ({ children, isPaused }) => {
-  const universeRef = useRef()
-  const timeRef = useRef(0)
-  const universeStars = React.useMemo(() => {
-    const starGeometry = new THREE.BufferGeometry()
-    const starMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 1,
-      sizeAttenuation: false
-    })
+import React, { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
+import * as THREE from 'three';
 
-    const starVertices = []
-    for (let i = 0; i < 10000; i++) {
-      const x = (Math.random() - 0.5) * 20000
-      const y = (Math.random() - 0.5) * 20000
-      const z = (Math.random() - 0.5) * 20000
-      starVertices.push(x, y, z)
-    }
-    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3))
-    return new THREE.Points(starGeometry, starMaterial)
-  }, [])
-
-  useFrame((state, delta) => {
-    timeRef.current += isPaused ? delta * 0.02 : delta;
-    if (universeRef.current) {
-      universeRef.current.rotation.y = timeRef.current * 0.0005
-    }
-  })
+const MilkyWaySkybox = () => {
+  const texture = useTexture('/textures/milky_way.jpg')
   return (
-    <group ref={universeRef}>
-      <primitive object={universeStars} />
-      {children}
-    </group>
+    <mesh>
+      <sphereGeometry args={[8000, 64, 64]} />
+      <meshBasicMaterial map={texture} side={THREE.BackSide} />
+    </mesh>
   )
 }
-export default Universe
+
+const Universe = ({ children, isPaused }) => {
+  const groupRef = useRef();
+
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += isPaused ? delta * 0.0001 : delta * 0.001;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <React.Suspense fallback={null}>
+        <MilkyWaySkybox />
+      </React.Suspense>
+      {children}
+    </group>
+  );
+};
+
+export default Universe;
