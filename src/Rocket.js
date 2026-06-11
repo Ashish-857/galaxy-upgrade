@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
+import { useTexture, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { PLANET_DATA } from './PlanetData'
 import { ISS } from './Spacecrafts'
@@ -137,7 +137,9 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
         
         // Auto-zoom to the planet only when animating
         const radius = PLANET_DATA[focusedPlanetIndex].baseRadius * scaleFactor
-        const desiredDistance = radius * 8 
+        const planet = PLANET_DATA[focusedPlanetIndex]
+        const multiplier = planet.hasRing ? 4.5 : 3.0
+        const desiredDistance = radius * multiplier
         const currentDistance = state.camera.position.distanceTo(target)
         
         if (isAnimatingRef.current) {
@@ -253,6 +255,61 @@ const Planet = ({ focusedPlanetIndex, setFocusedPlanetIndex, isPaused }) => {
                   />
                 )}
               </mesh>
+
+              {/* Floating 3D holographic label on focus */}
+              {focusedPlanetIndex === index && (
+                <Html 
+                  position={[0, radius * 1.2, 0]} 
+                  center 
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none' }}>
+                    <div 
+                      className="planet-label-container"
+                      style={{
+                        background: 'rgba(5, 10, 25, 0.85)',
+                        backdropFilter: 'blur(8px)',
+                        border: `1px solid ${planet.color}`,
+                        borderRadius: '20px',
+                        padding: '6px 16px',
+                        boxShadow: `0 0 15px ${planet.color}44, inset 0 0 8px rgba(255, 255, 255, 0.05)`,
+                        color: 'white',
+                        fontFamily: '"Inter", "Segoe UI", Roboto, sans-serif',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '2px',
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <div 
+                        className="pulse-dot"
+                        style={{ 
+                          width: '6px', 
+                          height: '6px', 
+                          borderRadius: '50%', 
+                          backgroundColor: planet.color,
+                          color: planet.color,
+                          boxShadow: `0 0 8px ${planet.color}` 
+                        }} 
+                      />
+                      {planet.name}
+                    </div>
+                    {/* Futuristic holographic line pointer */}
+                    <div 
+                      style={{ 
+                        width: '1px', 
+                        height: '20px', 
+                        background: `linear-gradient(to bottom, ${planet.color}, transparent)`,
+                        opacity: 0.8
+                      }} 
+                    />
+                  </div>
+                </Html>
+              )}
             </mesh>
 
             {/* Earth's Moon & ISS */}
