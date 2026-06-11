@@ -10,6 +10,8 @@ import Universe from './Universe';
 import AsteroidBelt from './AsteroidBelt';
 import { Voyager } from './Spacecrafts';
 import SpatialAudio from './SpatialAudio';
+import Comet from './Comet';
+import CosmicDust from './CosmicDust';
 
 import { PLANET_DATA } from './PlanetData';
 
@@ -114,6 +116,8 @@ function App() {
                 <AsteroidBelt isPaused={isPaused} />
                 <Voyager isPaused={isPaused} />
                 <Rocket focusedPlanetIndex={focusedPlanetIndex} setFocusedPlanetIndex={setFocusedPlanetIndex} isPaused={isPaused} />
+                <Comet isPaused={isPaused} />
+                <CosmicDust isPaused={isPaused} />
                 <RotatingStars isPaused={isPaused} />
               </Universe>
             </Suspense>
